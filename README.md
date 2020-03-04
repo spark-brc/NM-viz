@@ -3,11 +3,11 @@
 ## Get data and jupyter notebooks
 You essentially have 2 options:
 
-### - Easy way
+#### - Easy way
 - [Download the data zip file](https://github.com/spark-brc/NM-viz/archive/master.zip)
 - Unzip it to a prefered location.
 
-### - Hard way (Dev mode - get latest version)  
+#### - Hard way (Dev mode - get latest version)  
 - You will need to install Git if you don’t have it installed already. Downloads are available at [the link](https://git-scm.com/download). On windows, be sure to select the option that installs command-line tools  
 - For Git, you will need to set up SSH keys to work with Github. To do so:
     - Go to GitHub.com and set up an account
