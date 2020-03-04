@@ -1,16 +1,13 @@
 # Visualization National Modelling
-## 01_Connectivity Checker
 
 ## Get data and jupyter notebooks
-### 1. Easy way
-- Go to the link (https://github.com/spark-brc/NM-viz)
-- Download the data zip file then unzip it to a prefered location.
+You essentially have 2 options:
 
-<p align="center">
-    <img src="./imgs/fig_01.png" width="500">
-</p>
+### - Easy way
+- [Download the data zip file](https://github.com/spark-brc/NM-viz/archive/master.zip)
+- Unzip it to a prefered location.
 
-### 2. Hard way (Dev mode - get latest version)  
+### - Hard way (Dev mode - get latest version)  
 - You will need to install Git if you don’t have it installed already. Downloads are available at [the link](https://git-scm.com/download). On windows, be sure to select the option that installs command-line tools  
 - For Git, you will need to set up SSH keys to work with Github. To do so:
     - Go to GitHub.com and set up an account
@@ -25,14 +22,15 @@
     git clone https://github.com/spark-brc/NM-viz.git
     ```  
         
-
 ## Installation
-To execute jupyter notebooks, we need some Python libraries.
+To execute jupyter notebook, we need the Anaconda environment.
 
-### 1. Anaconda Python:
+#### 1. Anaconda Python:
 - If you don’t already have Anaconda Python installed, please install from this link:https://conda.io/miniconda.html  
 - Select the Python 3.7 version. 
     * Important - on Windows, choose option to install “for this user only” (Note, if you already have Anaconda installed, just skip to the next step which you will still need to run)
+
+#### 2. Set Environment and install libraries:
 - On Windows open the Anaconda Prompt from Start menu (on a Mac/Linux just open a terminal). And paste in this string and execute (this creates a python environment (nm_viz) that will work with our codes):
 ```bash
 conda create -n nm_viz python=3.7 jupyter notebook
