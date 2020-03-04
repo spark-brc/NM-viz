@@ -44,7 +44,7 @@ conda activate nm_viz
 conda install -c pyviz holoviz geoviews
 ```
 
-Then change directory into the example folder or drive and launch it with:  
+Then change directory into the example folder or drive:  
 - Change directory (example)
  ```bash
 cd NM_viz_master 
