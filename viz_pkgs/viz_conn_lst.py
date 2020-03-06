@@ -7,25 +7,27 @@ import pandas as pd
 import os
 
 
-def create_conn_lst(sim, net_wd=None, cha_file=None, out_fd=None, out_file=None):
-    """create a parameter uncertainty file from an existing *.pst file
+def create_conn_lst(sim, net_wd=None, cha_file=None, out_fd=None, out_file=None, top_num=None):
+    """create a dataframe of discrepancy for the whole watersheds
 
     Args:
-        - pst_file (`str`): path and name of existing *.pst file
-        - unc_file (`str`): name of parameter uncertainty file
-                            If `None`, then `param.unc` is used.
-                            Defult is `None`.
-        - sampl_n ('int'): sample number from normal distribution
-                            If `None`, then `1000` is used.
-                            Defult is `None`.
+        - sim (`list`): list of available HUC8 models
+        - net_wd (`path`): path to network working directory (e.g. r'//dragonfly/NAM/Models/Default_Generated/Models')
+        - cha_file (`str`): default is cha.key
+        - out_fd (`path`): path to user output folder to store an excel file for the connectivity dataframe
+        - out_file (`str`): excel file name
+                            default is `output.xlsx`.
+        - top_num (`int`): number for filtering high discrepance value
+                            default is `5`
     Returns:
-        `pandas.DataFrame`: a dataframe of log standard deviation for each parameter
-        `param.unc file`
+        `pandas.DataFrame`: a dataframe of discrepancy for the whole watersheds
 
     Example:
-        sm_pst_stats.create_param_unc('my.pst', 'my.unc', 2000)
-
+        from viz_pkgs.viz_conn_lst import create_conn_lst as ccl
+        ccl(sim, net_wd=net_wd, out_fd=out_fd, top_num=10)
     """
+
+
     sim = sim
     if net_wd is None:
         net_wd = net_wd
@@ -37,6 +39,9 @@ def create_conn_lst(sim, net_wd=None, cha_file=None, out_fd=None, out_file=None)
         out_fd = out_fd
     if out_file is None:
         out_file = 'output.xlsx'
+    if top_num is None:
+        top_num = 5
+
 
     big_df = pd.DataFrame()
     for i in tqdm(sim):
@@ -47,45 +52,45 @@ def create_conn_lst(sim, net_wd=None, cha_file=None, out_fd=None, out_file=None)
         cha_df = pd.read_csv(
                             os.path.join(net_wd, i, cha_key),
                             sep=r'\s+', skiprows=2, header=None, usecols=[1, 2, 4, 7, 8],
-                            names=['CHA_NAME','COMID', 'HUC12', 'DWN_OBJ', 'DWN_ID'],
+                            names=['CHA_NAME', 'COMID', 'HUC12', 'DWN_OBJ', 'DWN_ID'],
                             index_col=0,
-                            dtype={'HUC12':str}
+                            dtype={'HUC12': str, 'DWN_ID': str}
                             )
 
         df = pd.concat([cha_df, data_df], axis=1, sort=False)
 
-        # Keep only channel down objects
-        df = df[df['DWN_OBJ'] == 'lcha']
+        # Keep only channel or resovier down objects
+        df = df[(df['DWN_OBJ'] == 'lcha') | (df['DWN_OBJ'] == 'res')]
 
         # Calculating received water 
         # find dwn_ids
         dwn_df = df.groupby('DWN_ID')['flo_out'].agg(['sum','count'])
-        dwn_df.index.name = 'COMID'
-        dwn_df.index = dwn_df.index.astype('int64')
+        dwn_df.index.names = ['COMID']
+        dwn_df.index = dwn_df.index.astype('str')
 
+        # reset index to COMID
         df = df.reset_index()
         df = df.set_index('COMID')
-        df.index = df.index.astype('int64')
+        df.index.names = ['COMID']
+        df.index = df.index.astype('str')
 
-        df = pd.concat([df, dwn_df], axis=1)
-        df = df.dropna(subset=['index'])  # delete non lcha objects
-        df = df.fillna(0)
-        df = df.drop(['DWN_OBJ', 'DWN_ID'], axis=1)
+        # merge two dataframes including nan
+        df = df.merge(dwn_df, on='COMID', how='outer')
+        # df = pd.concat([df, dwn_df], axis=1, sort=False) # 
+        df = df.dropna(subset=['index'])  # delete non lcha object
         df['DISCR'] = df['flo_out'] - df['sum']
         data_dff = df
-        # data_dff.insert(0, 'CHA_NAME', df.index)
-        data_dff = data_dff.astype({'count': 'int64'})
-        data_dff.loc[(data_dff['count'] == 0), 'DISCR'] = 0
-        # data_dff = data_dff.reset_index()
         data_dff = data_dff.rename(columns={'index': 'CHA_NAME'})
-        data_dff = data_dff.iloc[(-data_dff['DISCR'].abs()).argsort()].iloc[:5]
+        data_dff['DISCR'] = data_dff['DISCR'].fillna(0)
+
+        # # data_dff = data_dff.reset_index()
+        # data_dff = data_dff.rename(columns={'index': 'CHA_NAME'})
+        data_dff = data_dff.iloc[(-data_dff['DISCR'].abs()).argsort()].iloc[:top_num]
         big_df = pd.concat([big_df, data_dff], axis=0)
 
     big_df.insert(1, 'HUC8', big_df['HUC12'].str[:8])
     big_df.to_excel(os.path.join(out_fd, out_file), index=True, index_label='COMID', engine='openpyxl')
     print('== Completed! ==')
-    print('{} file has been exportedd to {} folder.'.format(out_file, out_fd))
+    print('{} file has been exported to {} folder.'.format(out_file, out_fd))
 
     return big_df
-
-
