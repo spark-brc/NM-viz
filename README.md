@@ -41,7 +41,7 @@ conda activate nm_viz
 ```
 - Finally, install holoviz and geoviews with other required libraries
 ```bash
-conda install -c pyviz holoviz geoviews
+conda install -c pyviz holoviz geoviews openpyxl
 ```
 
 Then change directory into the example folder or drive:  
