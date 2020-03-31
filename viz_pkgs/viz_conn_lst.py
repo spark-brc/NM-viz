@@ -1,5 +1,5 @@
-"""SWAT-MODFLOW PEST support statistics: 12/31/2019 created by Seonggyu Park
-   last modified day: 4:31 12/31/2019 by Seonggyu Park
+"""National Modelling support statistics: 12/31/2019 created by Seonggyu Park
+   last modified day: 4:31 03/27/2020 by Seonggyu Park
 """
 
 from tqdm import tqdm
@@ -17,7 +17,7 @@ def create_conn_lst(sim, net_wd=None, cha_file=None, out_fd=None, out_file=None,
         - out_fd (`path`): path to user output folder to store an excel file for the connectivity dataframe
         - out_file (`str`): excel file name
                             default is `output.xlsx`.
-        - top_num (`int`): number for filtering high discrepance value
+        - top_num (`int`): number for filtering high discrepance ranking
                             default is `5`
     Returns:
         `pandas.DataFrame`: a dataframe of discrepancy for the whole watersheds
@@ -78,14 +78,15 @@ def create_conn_lst(sim, net_wd=None, cha_file=None, out_fd=None, out_file=None,
         df = df.merge(dwn_df, on='COMID', how='outer')
         # df = pd.concat([df, dwn_df], axis=1, sort=False) # 
         df = df.dropna(subset=['index'])  # delete non lcha object
-        df['DISCR'] = df['flo_out'] - df['sum']
+        df['DISCR_val'] = (df['flo_out'] - df['sum'])
+        df['DISCR_%'] = (df['flo_out'] / df['sum']) * 100
         data_dff = df
         data_dff = data_dff.rename(columns={'index': 'CHA_NAME'})
-        data_dff['DISCR'] = data_dff['DISCR'].fillna(0)
+        data_dff['DISCR_%'] = data_dff['DISCR_%'].fillna(0)
 
         # # data_dff = data_dff.reset_index()
         # data_dff = data_dff.rename(columns={'index': 'CHA_NAME'})
-        data_dff = data_dff.iloc[(-data_dff['DISCR'].abs()).argsort()].iloc[:top_num]
+        data_dff = data_dff.iloc[(-data_dff['DISCR_%'].abs()).argsort()].iloc[:top_num]
         big_df = pd.concat([big_df, data_dff], axis=0)
 
     big_df.insert(1, 'HUC8', big_df['HUC12'].str[:8])
